@@ -1,19 +1,21 @@
 'use client';
 
 import { useState } from 'react';
-
+import { createClient } from '@/app/lib/supabase/client';
 
 export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess('');
 
     if (password !== confirmPassword) {
       setError('Passwords do not match');
@@ -21,7 +23,35 @@ export default function SignupPage() {
       return;
     }
 
-}
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters.');
+      setLoading(false);
+      return;
+    }
+
+    const supabase = createClient();
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/complete-profile`,
+      },
+    });
+
+    if (error) {
+      setError(error.message);
+      setLoading(false);
+      return;
+    }
+
+    if (data.session) {
+      window.location.href = '/complete-profile';
+      return;
+    }
+
+    setSuccess('Account created. Check your email to confirm your signup.');
+    setLoading(false);
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
@@ -93,6 +123,12 @@ export default function SignupPage() {
           {error && (
             <div className="text-red-600 text-sm text-center">
               {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="text-emerald-600 text-sm text-center">
+              {success}
             </div>
           )}
 
