@@ -1,10 +1,11 @@
+import CompleteProfilePage from "./complete-profile/page";
 
-import SignupPage from "./auth/signup/page";
 
 export default function Home() {
   return (
     <div>
-      <SignupPage />
+
+      <CompleteProfilePage/>
     </div>
   );
 }
